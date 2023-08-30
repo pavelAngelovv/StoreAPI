@@ -3,8 +3,3 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
-
-alcohols_list:
-    path: /alcohols
-    controller: App\Controller\AlcoholController::listAlcohols
-    methods: GET
