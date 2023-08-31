@@ -34,7 +34,7 @@ class Alcohol
     #[Assert\NotBlank]
     private ?float $abv = null;
 
-    #[ORM\ManyToOne(targetEntity: Image::class)]
+    #[ORM\OneToOne(targetEntity: Image::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Image $image = null;
 
