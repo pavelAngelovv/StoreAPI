@@ -2,18 +2,10 @@
 
 namespace App\Repository;
 
-use App\Entity\Alcohol;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Alcohol;
 
-/**
- * @extends ServiceEntityRepository<Alcohol>
- *
- * @method Alcohol|null find($id, $lockMode = null, $lockVersion = null)
- * @method Alcohol|null findOneBy(array $criteria, array $orderBy = null)
- * @method Alcohol[]    findAll()
- * @method Alcohol[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class AlcoholRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -21,28 +13,42 @@ class AlcoholRepository extends ServiceEntityRepository
         parent::__construct($registry, Alcohol::class);
     }
 
-//    /**
-//     * @return Alcohol[] Returns an array of Alcohol objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findByCriteria($nameFilter, $typeFilter, $limit, $offset)
+    {
+        $qb = $this->createQueryBuilder('a');
 
-//    public function findOneBySomeField($value): ?Alcohol
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if ($nameFilter) {
+            $qb->andWhere('LOWER(a.name) LIKE :name')
+               ->setParameter('name', '%' . strtolower($nameFilter) . '%');
+        }
+
+        if ($typeFilter) {
+            $qb->andWhere('a.type = :type')
+               ->setParameter('type', $typeFilter);
+        }
+
+        return $qb->setMaxResults($limit)
+                  ->setFirstResult($offset)
+                  ->getQuery()
+                  ->getResult();
+    }
+
+    public function countByCriteria($nameFilter, $typeFilter)
+    {
+        $qb = $this->createQueryBuilder('a')
+                   ->select('COUNT(a.id)');
+
+        if ($nameFilter) {
+            $qb->andWhere('LOWER(a.name) LIKE :name')
+               ->setParameter('name', '%' . strtolower($nameFilter) . '%');
+        }
+
+        if ($typeFilter) {
+            $qb->andWhere('a.type = :type')
+               ->setParameter('type', $typeFilter);
+        }
+
+        return $qb->getQuery()
+                  ->getSingleScalarResult();
+    }
 }
