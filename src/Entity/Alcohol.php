@@ -15,27 +15,31 @@ class Alcohol
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Alcohol name is required.')]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Alcohol type is required.')]
+    #[Assert\Choice(choices: ['beer', 'wine', 'whiskey', 'vodka', 'rum'], message: 'Invalid alcohol type.')]
     private ?string $type = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Alcohol description is required.')]
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Producer::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'Alcohol producer is required.')]
     private ?Producer $producer = null;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Alcohol ABV is required.')]
+    #[Assert\Type(type: 'float', message: 'ABV should be a float.')]
     private ?float $abv = null;
 
     #[ORM\OneToOne(targetEntity: Image::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'Alcohol image is required.')]
     private ?Image $image = null;
 
     public function getId(): ?int
