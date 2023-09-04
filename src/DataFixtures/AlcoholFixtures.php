@@ -2,11 +2,11 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Alcohol;
+use App\Entity\Image;
+use App\Entity\Producer;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use App\Entity\Alcohol;
-use App\Entity\Producer;
-use App\Entity\Image;
 
 class AlcoholFixtures extends Fixture
 {

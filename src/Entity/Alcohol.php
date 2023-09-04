@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AlcoholRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AlcoholRepository::class)]
@@ -12,35 +13,44 @@ class Alcohol
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Alcohol name is required.')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Alcohol type is required.')]
     #[Assert\Choice(choices: ['beer', 'wine', 'whiskey', 'vodka', 'rum'], message: 'Invalid alcohol type.')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?string $type = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Alcohol description is required.')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Producer::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Alcohol producer is required.')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?Producer $producer = null;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotBlank(message: 'Alcohol ABV is required.')]
     #[Assert\Type(type: 'float', message: 'ABV should be a float.')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?float $abv = null;
 
     #[ORM\OneToOne(targetEntity: Image::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Alcohol image is required.')]
+    #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?Image $image = null;
+
+    // Getter and setter methods for the properties
 
     public function getId(): ?int
     {
