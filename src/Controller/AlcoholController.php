@@ -9,19 +9,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 
 class AlcoholController extends AbstractController
 {
-    private $serializer;
-
-    public function __construct(SerializerInterface $serializer)
-    {
-        $this->serializer = $serializer;
-    }
+    public function __construct(
+        private AlcoholRepository $alcoholRepository
+        ) {
+        }
 
     #[Route('/alcohols', methods: ['GET'])]
-    public function listAlcohols(Request $request, AlcoholRepository $alcoholRepository): JsonResponse
+    public function listAlcohols(Request $request): JsonResponse
     {
         $page = $request->query->get('page');
         $perPage = $request->query->get('perPage');
@@ -29,51 +26,38 @@ class AlcoholController extends AbstractController
         $typeFilter = $request->query->get('type');
 
         if (!$page || !$perPage) {
-                throw new BadRequestHttpException("Query parameters 'page' and 'perPage' are required.");
+            throw new BadRequestHttpException("Query parameters 'page' and 'perPage' are required.");
         }
 
-        $alcohols = $alcoholRepository->findByCriteria(
+        $alcohols = $this->alcoholRepository->findByCriteria(
             $nameFilter,
             $typeFilter,
             $perPage,
             ($page - 1) * $perPage);
-
-        $context = [
-            'groups' => ['alcohol', 'producer', 'image'],
-        ];
-
-        $serializedAlcohols = $this->serializer->serialize($alcohols, 'json', $context);
-
+        
         return $this->json([
             'total' => count($alcohols),
-            'items' => json_decode($serializedAlcohols, true),
-            ],
-             200,
-             [],
-             ['groups' => $context]
-        );
+            'items' => $alcohols,
+        ],
+        200,
+        [],
+        ['groups' => 'alcohol']);
     }
 
     #[Route('/alcohols/{id}', methods: ['GET'])]
-    public function getAlcohol(int $id, AlcoholRepository $alcoholRepository): JsonResponse
+    public function getAlcohol(int $id): JsonResponse
     {
-        $alcohol = $alcoholRepository->find($id);
+        $alcohol = $this->alcoholRepository->find($id);
 
         if (!$alcohol) {
             throw new NotFoundHttpException("Not found.");
         }
 
-        $context = [
-            'groups' => ['alcohol', 'producer', 'image'],
-        ];
-
-        $serializedAlcohol = $this->serializer->serialize($alcohol, 'json', $context);
-
         return $this->json(
-            json_decode($serializedAlcohol, true),
-             200,
-             [],
-             ['groups' => $context]
+            $alcohol,
+            200,
+            [],
+            ['groups' => 'alcohol']
         );
     }
 }

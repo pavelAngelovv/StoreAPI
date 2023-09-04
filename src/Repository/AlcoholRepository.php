@@ -34,23 +34,4 @@ class AlcoholRepository extends ServiceEntityRepository
 
         return $paginator;
     }
-
-    public function countByCriteria(?string $nameFilter, ?string $typeFilter): int
-    {
-        $qb = $this->createQueryBuilder('a')
-            ->select('COUNT(a.id)');
-
-        if ($nameFilter) {
-            $qb->andWhere('LOWER(a.name) LIKE :name')
-                ->setParameter('name', '%' . strtolower($nameFilter) . '%');
-        }
-
-        if ($typeFilter) {
-            $qb->andWhere('a.type = :type')
-                ->setParameter('type', $typeFilter);
-        }
-
-        return $qb->getQuery()
-            ->getSingleScalarResult();
-    }
 }
