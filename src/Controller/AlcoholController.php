@@ -47,7 +47,7 @@ class AlcoholController extends AbstractController
         );
     }
 
-    #[Route('/alcohols/{id}', name: 'app_alcohol_get_alcohol', methods: ['GET'])]
+    #[Route('/alcohols/{id}', name: 'app_alcohol_get_item', methods: ['GET'])]
     public function getAlcohol(int $id): JsonResponse
     {
         $alcohol = $this->alcoholRepository->find($id);
