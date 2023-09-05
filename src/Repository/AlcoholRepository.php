@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Repository;
+
+use App\Entity\Alcohol;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
-use App\Entity\Alcohol;
 
 class AlcoholRepository extends ServiceEntityRepository
 {
@@ -19,12 +20,12 @@ class AlcoholRepository extends ServiceEntityRepository
 
         if ($nameFilter) {
             $qb->andWhere('LOWER(a.name) LIKE :name')
-                ->setParameter('name', '%' . strtolower($nameFilter) . '%');
+               ->setParameter('name', '%' . strtolower($nameFilter) . '%');
         }
 
         if ($typeFilter) {
             $qb->andWhere('a.type = :type')
-                ->setParameter('type', $typeFilter);
+               ->setParameter('type', $typeFilter);
         }
 
         $paginator = new Paginator($qb);
