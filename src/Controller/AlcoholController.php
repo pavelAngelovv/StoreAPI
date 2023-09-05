@@ -17,7 +17,7 @@ class AlcoholController extends AbstractController
     ) {
     }
 
-    #[Route('/alcohols', methods: ['GET'])]
+    #[Route('/alcohols', name: 'app_alcohol_get_collection', methods: ['GET'])]
     public function listAlcohols(Request $request): JsonResponse
     {
         $page = $request->query->get('page');
@@ -47,7 +47,7 @@ class AlcoholController extends AbstractController
         );
     }
 
-    #[Route('/alcohols/{id}', methods: ['GET'])]
+    #[Route('/alcohols/{id}', name: 'app_alcohol_get_alcohol', methods: ['GET'])]
     public function getAlcohol(int $id): JsonResponse
     {
         $alcohol = $this->alcoholRepository->find($id);
