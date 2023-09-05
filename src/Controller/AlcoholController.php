@@ -14,8 +14,8 @@ class AlcoholController extends AbstractController
 {
     public function __construct(
         private AlcoholRepository $alcoholRepository
-        ) {
-        }
+    ) {
+    }
 
     #[Route('/alcohols', methods: ['GET'])]
     public function listAlcohols(Request $request): JsonResponse
@@ -33,15 +33,18 @@ class AlcoholController extends AbstractController
             $nameFilter,
             $typeFilter,
             $perPage,
-            ($page - 1) * $perPage);
+            ($page - 1) * $perPage
+        );
         
-        return $this->json([
-            'total' => count($alcohols),
-            'items' => $alcohols,
-        ],
-        200,
-        [],
-        ['groups' => 'alcohol']);
+        return $this->json(
+            [
+                'total' => count($alcohols),
+                'alcohols' => $alcohols,
+            ],
+            200,
+            [],
+            ['groups' => 'alcohol']
+        );
     }
 
     #[Route('/alcohols/{id}', methods: ['GET'])]
