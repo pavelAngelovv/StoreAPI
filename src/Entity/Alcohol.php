@@ -32,7 +32,7 @@ class Alcohol
     #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?string $description = null;
 
-    #[ORM\ManyToOne(targetEntity: Producer::class)]
+    #[ORM\ManyToOne(targetEntity: Producer::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Alcohol producer is required.')]
     #[Groups(["alcohol"])] // Serialization group for the entire entity
@@ -44,7 +44,7 @@ class Alcohol
     #[Groups(["alcohol"])] // Serialization group for the entire entity
     private ?float $abv = null;
 
-    #[ORM\OneToOne(targetEntity: Image::class)]
+    #[ORM\OneToOne(targetEntity: Image::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Alcohol image is required.')]
     #[Groups(["alcohol"])] // Serialization group for the entire entity
