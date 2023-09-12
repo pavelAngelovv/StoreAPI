@@ -141,7 +141,12 @@ class AlcoholController extends AbstractController
         $entityManager->persist($alcohol);
         $entityManager->flush();
 
-        return $this->json($alcohol, 201);
+        return $this->json(
+            $alcohol,
+            JsonResponse::HTTP_CREATED,
+            [],
+            ['groups' => 'alcohol']
+        );
     }
 
     #[Route('/alcohols/{id}', name: 'app_alcohol_update_item', methods: ['PUT'])]
