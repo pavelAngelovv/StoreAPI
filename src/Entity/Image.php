@@ -19,7 +19,6 @@ class Image
     #[Groups(["alcohol"])]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
     #[Groups(["alcohol"])]
     private ?string $url = null;
 
@@ -36,19 +35,12 @@ class Image
     public function setName(string $name): static
     {
         $this->name = $name;
-
+        $this->url = '/storage/images/' . $name;
         return $this;
     }
 
     public function getUrl(): ?string
     {
         return $this->url;
-    }
-
-    public function setUrl(string $url): static
-    {
-        $this->url = $url;
-
-        return $this;
     }
 }

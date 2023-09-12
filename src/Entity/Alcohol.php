@@ -13,44 +13,42 @@ class Alcohol
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Alcohol name is required.')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Alcohol type is required.')]
     #[Assert\Choice(choices: ['beer', 'wine', 'whiskey', 'vodka', 'rum'], message: 'Invalid alcohol type.')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?string $type = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Alcohol description is required.')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Producer::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Alcohol producer is required.')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?Producer $producer = null;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotBlank(message: 'Alcohol ABV is required.')]
     #[Assert\Type(type: 'float', message: 'ABV should be a float.')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?float $abv = null;
 
     #[ORM\OneToOne(targetEntity: Image::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Alcohol image is required.')]
-    #[Groups(["alcohol"])] // Serialization group for the entire entity
+    #[Groups(["alcohol"])]
     private ?Image $image = null;
-
-    // Getter and setter methods for the properties
 
     public function getId(): ?int
     {
