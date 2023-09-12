@@ -24,6 +24,7 @@ class AlcoholController extends AbstractController
         private AlcoholRepository $alcoholRepository,
         private ValidatorInterface $validator,
         private EntityManagerInterface $entityManager,
+        private SerializerInterface $serializer
     ) {
     }
 
@@ -75,7 +76,7 @@ class AlcoholController extends AbstractController
     }
 
     #[Route('/alcohols', name: 'app_alcohol_post_item', methods: ['POST'])]
-    public function createAlcohol(Request $request, SerializerInterface $serializer): JsonResponse
+    public function createAlcohol(Request $request): JsonResponse
     {
         $entityManager = $this->entityManager;
         $uploadedFiles = $request->files->all();
@@ -110,7 +111,7 @@ class AlcoholController extends AbstractController
             $alcoholData['abv'] = (float) $alcoholData['abv'];
         }
 
-        $alcohol = $serializer->deserialize(json_encode($alcoholData), Alcohol::class, 'json');
+        $alcohol = $this->serializer->deserialize(json_encode($alcoholData), Alcohol::class, 'json');
 
         $producerId = $alcoholData['producerId'] ?? null;
         if ($producerId) {
