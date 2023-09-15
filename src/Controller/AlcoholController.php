@@ -125,7 +125,6 @@ class AlcoholController extends AbstractController
         $alcohol->setImage($image);
     
         $errors = $this->validator->validate($alcohol);
-    
         if (count($errors) > 0) {
             $errorMessages = [];
             foreach ($errors as $error) {
@@ -152,13 +151,12 @@ class AlcoholController extends AbstractController
     public function updateAlcohol(int $id, Request $request): JsonResponse
     {
         $requestData = json_decode($request->getContent(), true);
-    
+
         if (!isset($requestData['producerId'])) {
             throw new BadRequestHttpException("The 'producerId' field is required.");
         }
     
-        $alcohol = $this->alcoholRepository->find($id);
-    
+        $alcohol = $this->alcoholRepository->find($id); 
         if (!$alcohol) {
             throw new NotFoundHttpException("Alcohol not found.");
         }
@@ -178,7 +176,6 @@ class AlcoholController extends AbstractController
         $alcohol->setProducer($producer);
     
         $errors = $this->validator->validate($alcohol);
-    
         if (count($errors) > 0) {
             $errorMessages = [];
             foreach ($errors as $error) {
