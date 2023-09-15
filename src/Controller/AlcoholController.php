@@ -155,7 +155,7 @@ class AlcoholController extends AbstractController
         $requestData = json_decode($request->getContent(), true);
     
         if (!isset($requestData['producerId'])) {
-            throw new BadRequestHttpException("The 'producerId' field is required in the request body.");
+            throw new BadRequestHttpException("The 'producerId' field is required.");
         }
     
         $producerId = $requestData['producerId'];
