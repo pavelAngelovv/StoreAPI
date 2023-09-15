@@ -81,7 +81,6 @@ class AlcoholController extends AbstractController
     public function createAlcohol(Request $request): JsonResponse
     {
         $uploadedFiles = $request->files->all();
-    
         $alcoholData = $request->request->all();
     
         if (isset($alcoholData['abv'])) {
@@ -89,14 +88,14 @@ class AlcoholController extends AbstractController
         }
     
         $alcohol = $this->serializer->deserialize(json_encode($alcoholData), Alcohol::class, 'json');
-        $producerId = $alcoholData['producerId'] ?? null;
 
+        $producerId = $alcoholData['producerId'] ?? null;
         if ($producerId) {
-            $existingProducer = $this->entityManager->getRepository(Producer::class)->find($producerId);
-            if (!$existingProducer) {
+            $producer = $this->producerRepository->find($producerId);
+            if (!$producer) {
                 throw new BadRequestHttpException("Producer not found");
             }
-            $alcohol->setProducer($existingProducer);
+            $alcohol->setProducer($producer);
         } else {
             throw new BadRequestHttpException("Producer ID is required");
         }
@@ -158,7 +157,6 @@ class AlcoholController extends AbstractController
             throw new BadRequestHttpException("The 'producerId' field is required.");
         }
     
-        $producerId = $requestData['producerId'];
         $alcohol = $this->alcoholRepository->find($id);
     
         if (!$alcohol) {
@@ -171,14 +169,13 @@ class AlcoholController extends AbstractController
             'json',
             ['object_to_populate' => $alcohol]
         );
-    
-        $existingProducer = $this->producerRepository->find($producerId);
-    
-        if (!$existingProducer) {
+
+        $producerId = $requestData['producerId'];
+        $producer = $this->producerRepository->find($producerId);    
+        if (!$producer) {
             throw new BadRequestHttpException("Producer not found.");
         }
-    
-        $alcohol->setProducer($existingProducer);
+        $alcohol->setProducer($producer);
     
         $errors = $this->validator->validate($alcohol);
     
