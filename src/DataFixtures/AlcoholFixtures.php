@@ -24,7 +24,8 @@ class AlcoholFixtures extends Fixture
                 $alcoholType = self::$alcoholTypes[array_rand(self::$alcoholTypes)];
 
                 $image = new Image();
-                $image->setName("{$alcoholType} {$i} Marketing");
+                $fileName = md5(uniqid()) . '.jpg';
+                $image->setFilename($fileName);
                 $image->setUrl("https://images.unsplash.com/photo-1569529465841-dfecdab7503b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YWxjb2hvbHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60");
                 $manager->persist($image);
 
