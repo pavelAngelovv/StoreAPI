@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Alcohol;
 use App\Entity\Image;
-use App\Entity\Producer;
 use App\Repository\AlcoholRepository;
 use App\Repository\ProducerRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -77,7 +76,7 @@ class AlcoholController extends AbstractController
         );
     }
 
-    #[Route('/alcohols', name: 'app_alcohol_create_item', methods: ['POST'])]
+    #[Route('/admin/alcohols', name: 'app_alcohol_create_item', methods: ['POST'])]
     public function createAlcohol(Request $request): JsonResponse
     {
         $uploadedFiles = $request->files->all();
@@ -147,7 +146,7 @@ class AlcoholController extends AbstractController
     }
     
 
-    #[Route('/alcohols/{id}', name: 'app_alcohol_update_item', methods: ['PUT'])]
+    #[Route('/admin/alcohols/{id}', name: 'app_alcohol_update_item', methods: ['PUT'])]
     public function updateAlcohol(int $id, Request $request): JsonResponse
     {
         $requestData = json_decode($request->getContent(), true);
@@ -196,7 +195,7 @@ class AlcoholController extends AbstractController
         );
     }
 
-    #[Route('/alcohols/{id}', name: 'app_alcohol_delete_item', methods: ['DELETE'])]
+    #[Route('/admin/alcohols/{id}', name: 'app_alcohol_delete_item', methods: ['DELETE'])]
     public function deleteAlcohol(int $id): JsonResponse
     {
         $alcohol = $this->alcoholRepository->find($id);
