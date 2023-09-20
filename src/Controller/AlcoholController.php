@@ -146,7 +146,7 @@ class AlcoholController extends AbstractController
     }
     
 
-    #[Route('admin/alcohols/{id}', name: 'app_alcohol_update_item', methods: ['PUT'])]
+    #[Route('/admin/alcohols/{id}', name: 'app_alcohol_update_item', methods: ['PUT'])]
     public function updateAlcohol(int $id, Request $request): JsonResponse
     {
         $requestData = json_decode($request->getContent(), true);
@@ -195,7 +195,7 @@ class AlcoholController extends AbstractController
         );
     }
 
-    #[Route('admin/alcohols/{id}', name: 'app_alcohol_delete_item', methods: ['DELETE'])]
+    #[Route('/admin/alcohols/{id}', name: 'app_alcohol_delete_item', methods: ['DELETE'])]
     public function deleteAlcohol(int $id): JsonResponse
     {
         $alcohol = $this->alcoholRepository->find($id);
