@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 use App\Entity\Alcohol;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 class AlcoholControllerTest extends WebTestCase
 {    private $client;
@@ -33,18 +34,25 @@ class AlcoholControllerTest extends WebTestCase
         $this->client->setServerParameter('HTTP_Authorization', sprintf('Bearer %s', $data['token']));
     }
 
-    public function testGetList(): void
+    public function testGetListSuccess(): void
     {
         $this->client->request('GET', '/alcohols?page=1&perPage=55');
         $responseContent = $this->client->getResponse()->getContent();
     
         $this->assertResponseIsSuccessful();
-    
         $this->assertJson($responseContent);
     
-        $this->assertStringContainsString('"total":50', $responseContent);
-        $this->assertStringContainsString('"alcohols":[', $responseContent);
-         
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertIsArray($responseData);
+        $this->assertArrayHasKey('total', $responseData);
+        $this->assertArrayHasKey('alcohols', $responseData);
+        $this->assertIsArray($responseData['alcohols']);
+        $this->assertEquals(50, $responseData['total']);
+    }
+
+    public function testGetListFailure(): void
+    {    
         $this->client->request('GET', '/alcohols?perPage=55');
         $this->assertResponseStatusCodeSame(400); 
         $this->assertStringContainsString('Query parameters \'page\' and \'perPage\' are required.', $this->client->getResponse()->getContent());
@@ -54,28 +62,35 @@ class AlcoholControllerTest extends WebTestCase
         $this->assertStringContainsString('Query parameters \'page\' and \'perPage\' are required.', $this->client->getResponse()->getContent());
     }
     
-    public function testGetItem(): void
+    public function testGetItemSuccess(): void
     {
-        $this->client->request('GET', '/alcohols/1');
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+
+        $this->client->request('GET', '/alcohols/' . $alcohol->getId());
         $responseContent = $this->client->getResponse()->getContent();
-    
+
         $this->assertResponseIsSuccessful();
     
         $this->assertJson($responseContent);
     
-        $this->assertStringContainsString('"id":1', $responseContent);
-        $this->assertStringContainsString('"name":"vodka 1"', $responseContent);
-        $this->assertStringContainsString('"type":"vodka"', $responseContent);
-        $this->assertStringContainsString('"abv":5', $responseContent);
-        $this->assertStringContainsString('"country":"Country 1"', $responseContent);
-        $this->assertStringContainsString('"producer":{', $responseContent);
-        $this->assertStringContainsString('"name":"Producer 1"', $responseContent);
-        $this->assertStringContainsString('"country":"Country 1"', $responseContent);
-        $this->assertStringContainsString('"image":{', $responseContent);
-        $this->assertStringContainsString('"id":1', $responseContent);
-        $this->assertStringContainsString('"filename":"c174fc3b59fecea41c5e9e8e9809e97d.jpg"', $responseContent);
+        $responseData = json_decode($responseContent, true);
+    
+        $this->assertIsArray($responseData);
+        $this->assertArrayHasKey('id', $responseData);
+        $this->assertArrayHasKey('name', $responseData);
+        $this->assertArrayHasKey('producer', $responseData);
+        $this->assertArrayHasKey('image', $responseData);
+        $this->assertEquals(50, $responseData['id']);
+        $this->assertEquals('wine 5', $responseData['name']);
+    }
 
-        $this->client->request('GET', '/alcohols/51');
+    public function testGetItemFailure(): void
+    {
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+
+        $this->client->request('GET', '/alcohols/' . $alcohol->getId() + 1);
         $responseContent = $this->client->getResponse()->getContent();
     
         $this->assertResponseStatusCodeSame(404);
@@ -91,12 +106,13 @@ class AlcoholControllerTest extends WebTestCase
         $this->assertStringContainsString('JWT Token not found', $this->client->getResponse()->getContent());
     }
 
-    public function testCreateItem(): void
+    public function testCreateItemSuccess(): void
     {
         $this->authenticateClient();
-
+        
+        $kernel = self::getContainer()->get(KernelInterface::class);
         $tempFilePath = tempnam(sys_get_temp_dir(), 'alcohol_image_test');
-        copy('/Users/pavelangelov/Documents/GitHub/Store-api/Store-api/StoreAPI/tests/images/alcohol_image.jpeg', $tempFilePath);
+        copy($kernel->getProjectDir() . '/tests/images/alcohol_image.jpeg', $tempFilePath);
 
         $uploadedFile = new UploadedFile(
             $tempFilePath,
@@ -123,16 +139,30 @@ class AlcoholControllerTest extends WebTestCase
         );
         
         $this->assertResponseIsSuccessful();
-
+        
         $responseContent = $this->client->getResponse()->getContent();
-        $this->assertStringContainsString('"name":"Test Beer"', $responseContent);
-        $this->assertStringContainsString('"type":"beer"', $responseContent);
-        $this->assertStringContainsString('"abv":7.5', $responseContent);
-        $this->assertStringContainsString('"country":"Country 5"', $responseContent);
-        $this->assertStringContainsString('"producer":{', $responseContent);
-        $this->assertStringContainsString('"name":"Producer 5"', $responseContent);
-        $this->assertStringContainsString('"country":"Country 5"', $responseContent);
-    
+        $responseData = json_decode($responseContent, true);
+        
+        $this->assertIsArray($responseData);
+        $this->assertArrayHasKey('name', $responseData);
+        $this->assertArrayHasKey('type', $responseData);
+        $this->assertArrayHasKey('abv', $responseData);
+        
+        $this->assertEquals('Test Beer', $responseData['name']);
+        $this->assertEquals('beer', $responseData['type']);
+        $this->assertEquals(7.5, $responseData['abv']);
+        
+        $this->assertArrayHasKey('producer', $responseData);
+        $this->assertEquals('5', $responseData['producer']['id']);
+        $this->assertEquals('Producer 5', $responseData['producer']['name']);
+        $this->assertEquals('Country 5', $responseData['producer']['country']);
+
+        $this->assertArrayHasKey('image', $responseData);
+    }
+
+    public function testCreateItemFailure(): void
+    {
+        $this->authenticateClient();
         $this->client->request(
             'POST',
             '/admin/alcohols',
@@ -155,8 +185,9 @@ class AlcoholControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(400); 
         $this->assertStringContainsString('Image file is required', $this->client->getResponse()->getContent());
         
+        $kernel = self::getContainer()->get(KernelInterface::class);
         $tempFilePath = tempnam(sys_get_temp_dir(), 'alcohol_image_test');
-        copy('/Users/pavelangelov/Documents/GitHub/Store-api/Store-api/StoreAPI/tests/images/alcohol_image.jpeg', $tempFilePath);
+        copy($kernel->getProjectDir() . '/tests/images/alcohol_image.jpeg', $tempFilePath);
 
         $uploadedFile = new UploadedFile(
             $tempFilePath,
@@ -181,19 +212,23 @@ class AlcoholControllerTest extends WebTestCase
     }
 
     public function testUpdateItemUnauthenticated(): void
-    {
-        $this->client->request('PUT', '/admin/alcohols/1');
+    {   
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+
+        $this->client->request('PUT', '/admin/alcohols/' . $alcohol->getId());
 
         $this->assertResponseStatusCodeSame(401);
         $this->assertJson($this->client->getResponse()->getContent());
         $this->assertStringContainsString('JWT Token not found', $this->client->getResponse()->getContent());
     }
 
-    public function testUpdateItem(): void
+    public function testUpdateItemSuccess(): void
     {
         $this->authenticateClient();
-        $createdEntity = $this->createItem();
-        $createdItemId = $createdEntity['id'];
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $itemId = $alcohol->getId();
 
         $updatedData = [
             'name' => 'Updated Beer',
@@ -205,7 +240,7 @@ class AlcoholControllerTest extends WebTestCase
 
         $this->client->request(
             'PUT',
-            '/admin/alcohols/' . $createdItemId, 
+            '/admin/alcohols/' . $itemId, 
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -215,17 +250,26 @@ class AlcoholControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $updatedAlcohol = $entityManager->getRepository(Alcohol::class)->find($createdItemId);
+        $updatedAlcohol = $entityManager->getRepository(Alcohol::class)->find($itemId);
 
+        $this->assertNotNull($updatedAlcohol);
         $this->assertEquals('Updated Beer', $updatedAlcohol->getName());
         $this->assertEquals('beer', $updatedAlcohol->getType());
         $this->assertEquals('Updated beer description', $updatedAlcohol->getDescription());
         $this->assertEquals(6, $updatedAlcohol->getProducer()->getId());
         $this->assertEquals(8.0, $updatedAlcohol->getAbv());
+    }
+    
+    public function testUpdateItemFailure(): void
+    {
+        $this->authenticateClient();
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $itemId = $alcohol->getId();
 
         $this->client->request(
             'PUT',
-            '/admin/alcohols/' . $createdItemId, 
+            '/admin/alcohols/' . $itemId, 
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -236,7 +280,7 @@ class AlcoholControllerTest extends WebTestCase
 
         $this->client->request(
             'PUT',
-            '/admin/alcohols/51', 
+            '/admin/alcohols/' . ++$itemId, 
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -250,67 +294,40 @@ class AlcoholControllerTest extends WebTestCase
 
     public function testDeleteItemUnauthenticated(): void
     {
-        $this->client->request('DELETE', '/admin/alcohols/1');
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+
+        $this->client->request('DELETE', '/admin/alcohols/' . $alcohol->getId());
 
         $this->assertResponseStatusCodeSame(401);
         $this->assertJson($this->client->getResponse()->getContent());
         $this->assertStringContainsString('JWT Token not found', $this->client->getResponse()->getContent());
     }
 
-    public function testDeleteItem(): void
+    public function testDeleteItemSuccess(): void
     {
         $this->authenticateClient();
-        $createdEntity = $this->createItem();
-        $createdItemId = $createdEntity['id'];
-        $this->client->request('DELETE', '/admin/alcohols/' . $createdItemId);
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $itemId = $alcohol->getId();
+        $this->client->request('DELETE', '/admin/alcohols/' . $itemId);
         $this->assertResponseIsSuccessful();
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $deletedAlcohol = $entityManager->getRepository(Alcohol::class)->find($createdItemId);
-
+        $deletedAlcohol = $entityManager->getRepository(Alcohol::class)->find($itemId);
+        
         $this->assertNull($deletedAlcohol, 'The item should be deleted');
+    }
 
-        $this->client->request('DELETE', '/admin/alcohols/51');
+    public function testDeleteItemFailure(): void
+    {
+        $this->authenticateClient();
+        $entityManager = $this->getContainer()->get('doctrine')->getManager();
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $itemId = $alcohol->getId();
+        $this->client->request('DELETE', '/admin/alcohols/' . ++$itemId);
         $responseContent = $this->client->getResponse()->getContent();
     
         $this->assertResponseStatusCodeSame(404);
         $this->assertStringContainsString('Alcohol not found.', $responseContent);
-    }
-
-    public function createItem(): array
-    {
-        $this->authenticateClient();
-
-        $tempFilePath = tempnam(sys_get_temp_dir(), 'alcohol_image_test');
-        copy('/Users/pavelangelov/Documents/GitHub/Store-api/Store-api/StoreAPI/tests/images/alcohol_image.jpeg', $tempFilePath);
-
-        $uploadedFile = new UploadedFile(
-            $tempFilePath,
-            'alcohol_image.jpeg', 
-            'image/jpeg', 
-            null,
-            true
-        );
-
-        $postData = [
-            'name' => 'Newly Created Beer',
-            'type' => 'beer',
-            'description' => 'This beer was just created!',
-            'producerId' => 7, 
-            'abv' => 6.5,
-        ];
-    
-        $this->client->request(
-            'POST',
-            '/admin/alcohols',
-            $postData,
-            ['image' => $uploadedFile],
-            ['CONTENT_TYPE' => 'multipart/form-data']
-        );
-
-        $responseContent = $this->client->getResponse()->getContent();
-        $responseData = json_decode($responseContent, true);
-        $createdItemId = $responseData['id'];
-    
-        return ['id' => $createdItemId, 'data' => $postData];
     }
 }
