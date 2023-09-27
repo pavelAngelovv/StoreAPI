@@ -233,6 +233,19 @@ class AlcoholControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(400); 
         $this->assertStringContainsString('The \'producerId\' field is required.', $this->client->getResponse()->getContent());
+
+        $this->client->request(
+            'PUT',
+            '/admin/alcohols/51', 
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode(['producerId' => 6]),
+        );
+        $responseContent = $this->client->getResponse()->getContent();
+    
+        $this->assertResponseStatusCodeSame(404);
+        $this->assertStringContainsString('Alcohol not found.', $responseContent);
     }
 
     public function testDeleteItemUnauthenticated(): void
