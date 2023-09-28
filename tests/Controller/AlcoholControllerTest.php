@@ -65,7 +65,7 @@ class AlcoholControllerTest extends WebTestCase
     public function testGetItemSuccess(): void
     {
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['name' => 'wine 5']);
 
         $this->client->request('GET', '/alcohols/' . $alcohol->getId());
         $responseContent = $this->client->getResponse()->getContent();
@@ -81,16 +81,13 @@ class AlcoholControllerTest extends WebTestCase
         $this->assertArrayHasKey('name', $responseData);
         $this->assertArrayHasKey('producer', $responseData);
         $this->assertArrayHasKey('image', $responseData);
-        $this->assertEquals(50, $responseData['id']);
+        $this->assertEquals(15, $responseData['id']);
         $this->assertEquals('wine 5', $responseData['name']);
     }
 
     public function testGetItemFailure(): void
     {
-        $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
-
-        $this->client->request('GET', '/alcohols/' . $alcohol->getId() + 1);
+        $this->client->request('GET', '/alcohols/999');
         $responseContent = $this->client->getResponse()->getContent();
     
         $this->assertResponseStatusCodeSame(404);
@@ -160,7 +157,7 @@ class AlcoholControllerTest extends WebTestCase
         $this->assertArrayHasKey('image', $responseData);
     }
 
-    public function testCreateItemFailure(): void
+    public function testCreateItemMissingProducerId(): void
     {
         $this->authenticateClient();
         $this->client->request(
@@ -173,7 +170,11 @@ class AlcoholControllerTest extends WebTestCase
         
         $this->assertResponseStatusCodeSame(400); 
         $this->assertStringContainsString('Producer ID is required', $this->client->getResponse()->getContent());
-        
+    }
+
+    public function testCreateItemMissingImage(): void
+    {
+        $this->authenticateClient();
         $this->client->request(
             'POST',
             '/admin/alcohols',
@@ -184,7 +185,11 @@ class AlcoholControllerTest extends WebTestCase
         
         $this->assertResponseStatusCodeSame(400); 
         $this->assertStringContainsString('Image file is required', $this->client->getResponse()->getContent());
-        
+    }
+
+    public function testCreateItemMissingProperties(): void
+    {
+        $this->authenticateClient();
         $kernel = self::getContainer()->get(KernelInterface::class);
         $tempFilePath = tempnam(sys_get_temp_dir(), 'alcohol_image_test');
         copy($kernel->getProjectDir() . '/tests/images/alcohol_image.jpeg', $tempFilePath);
@@ -214,7 +219,7 @@ class AlcoholControllerTest extends WebTestCase
     public function testUpdateItemUnauthenticated(): void
     {   
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['name' => 'wine 5']);
 
         $this->client->request('PUT', '/admin/alcohols/' . $alcohol->getId());
 
@@ -227,7 +232,7 @@ class AlcoholControllerTest extends WebTestCase
     {
         $this->authenticateClient();
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['name' => 'wine 5']);
         $itemId = $alcohol->getId();
 
         $updatedData = [
@@ -264,7 +269,7 @@ class AlcoholControllerTest extends WebTestCase
     {
         $this->authenticateClient();
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['name' => 'wine 5']);
         $itemId = $alcohol->getId();
 
         $this->client->request(
@@ -280,7 +285,7 @@ class AlcoholControllerTest extends WebTestCase
 
         $this->client->request(
             'PUT',
-            '/admin/alcohols/' . ++$itemId, 
+            '/admin/alcohols/999', 
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -295,7 +300,7 @@ class AlcoholControllerTest extends WebTestCase
     public function testDeleteItemUnauthenticated(): void
     {
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['name' => 'wine 5']);
 
         $this->client->request('DELETE', '/admin/alcohols/' . $alcohol->getId());
 
@@ -308,7 +313,7 @@ class AlcoholControllerTest extends WebTestCase
     {
         $this->authenticateClient();
         $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
+        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['name' => 'wine 5']);
         $itemId = $alcohol->getId();
         $this->client->request('DELETE', '/admin/alcohols/' . $itemId);
         $this->assertResponseIsSuccessful();
@@ -321,10 +326,7 @@ class AlcoholControllerTest extends WebTestCase
     public function testDeleteItemFailure(): void
     {
         $this->authenticateClient();
-        $entityManager = $this->getContainer()->get('doctrine')->getManager();
-        $alcohol = $entityManager->getRepository(Alcohol::class)->findOneBy(['id' => 50]);
-        $itemId = $alcohol->getId();
-        $this->client->request('DELETE', '/admin/alcohols/' . ++$itemId);
+        $this->client->request('DELETE', '/admin/alcohols/999');
         $responseContent = $this->client->getResponse()->getContent();
     
         $this->assertResponseStatusCodeSame(404);
